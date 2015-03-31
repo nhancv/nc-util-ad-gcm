@@ -1,119 +1,95 @@
 package cvnhan.android.androidgcmexample;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends Activity {
-    private final static String TAG=MainActivity.class.getSimpleName();
-    public static final String EXTRA_MESSAGE = "message";
-    public static final String PROPERTY_REG_ID = "registration_id";
+    private final static String TAG = MainActivity.class.getSimpleName();
+    private static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    static final String SENDER_ID = "875274890887";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-
-    // label to display gcm messages
+    private boolean active = false;
     TextView lblMessage;
-    Button btnTest;
-    GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
-    SharedPreferences prefs;
-    Context context;
 
+    GoogleCloudMessaging gcm;
+    Context context;
     String regid;
 
     // Alert dialog manager
     AlertDialogManager alert = new AlertDialogManager();
-
     // Connection detector
     ConnectionDetector cd;
 
-//    public static String name;
-//    public static String email;
-
-
-
-
+    public static String name;
+    public static String email;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         cd = new ConnectionDetector(getApplicationContext());
         lblMessage = (TextView) findViewById(R.id.lblMessage);
-        btnTest=(Button) findViewById(R.id.btnTest);
-
-        // Check if Internet present
         if (!cd.isConnectingToInternet()) {
-            // Internet Connection is not present
             alert.showAlertDialog(MainActivity.this,
                     "Internet Connection Error",
                     "Please connect to working Internet connection");
-            // stop executing code by return
             return;
         }
         context = getApplicationContext();
-        // Check device for Play Services APK.
         if (checkPlayServices()) {
-
+            registerReceiver(mHandleMessageReceiver, new IntentFilter(
+                    CommonUtilities.DISPLAY_MESSAGE_ACTION));
             gcm = GoogleCloudMessaging.getInstance(this);
             regid = getRegistrationId(context);
 
             if (regid.isEmpty()) {
-                registerInBackground();
-            }
-
-            btnTest.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if(!regid.isEmpty()) {
-                        new AsyncTask<Void, Void, String>() {
-                            @Override
-                            protected String doInBackground(Void... params) {
-                                String msg = "";
-                                try {
-                                    Bundle data = new Bundle();
-                                    data.putString("my_message", "Hello World");
-                                    data.putString("my_action",
-                                            "com.google.android.gcm.demo.app.ECHO_NOW");
-                                    String id = Integer.toString(msgId.incrementAndGet());
-                                    gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
-                                    msg = "Sent message";
-                                } catch (IOException ex) {
-                                    msg = "Error :" + ex.getMessage();
-                                }
-                                Log.e("btnTest", msg);
-                                return msg;
-                            }
-
-                            @Override
-                            protected void onPostExecute(String msg) {
-                                lblMessage.append(msg + "\n");
-                            }
-                        }.execute(null, null, null);
-                    }
+                startActivityForResult(new Intent(this, RegisterActivity.class), 0);
+            } else {
+                String contentmsg = getIntent().getStringExtra("contentmsg");
+                if (contentmsg != null) {
+                    lblMessage.setText(contentmsg);
                 }
-            });
-        }else {
+            }
+        } else {
             Log.i(TAG, "No valid Google Play Services APK found.");
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK) {
+                if (data != null) {
+                    name = data.getStringExtra("name");
+                    email = data.getStringExtra("email");
+                    registerInBackground(name, email);
+                }
+            }
+        }
+    }
+
     private String getRegistrationId(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
         String registrationId = prefs.getString(PROPERTY_REG_ID, "");
@@ -132,6 +108,13 @@ public class MainActivity extends Activity {
         }
         return registrationId;
     }
+
+    private void ClearSharedPreferences(Context context){
+        final SharedPreferences prefs = getGCMPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.commit();
+    }
     /**
      * @return Application's {@code SharedPreferences}.
      */
@@ -141,6 +124,7 @@ public class MainActivity extends Activity {
         return getSharedPreferences(MainActivity.class.getSimpleName(),
                 Context.MODE_PRIVATE);
     }
+
     /**
      * @return Application's version code from the {@code PackageManager}.
      */
@@ -154,13 +138,14 @@ public class MainActivity extends Activity {
             throw new RuntimeException("Could not get package name: " + e);
         }
     }
+
     /**
      * Registers the application with GCM servers asynchronously.
-     * <p>
+     * <p/>
      * Stores the registration ID and app versionCode in the application's
      * shared preferences.
      */
-    private void registerInBackground() {
+    private void registerInBackground(final String name, final String email) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
@@ -169,28 +154,35 @@ public class MainActivity extends Activity {
                     if (gcm == null) {
                         gcm = GoogleCloudMessaging.getInstance(context);
                     }
-                    regid = gcm.register(SENDER_ID);
+                    regid = gcm.register(CommonUtilities.SENDER_ID);
                     msg = "Device registered, registration ID=" + regid;
-
-                    // You should send the registration ID to your server over HTTP,
-                    // so it can use GCM/HTTP or CCS to send messages to your app.
-                    // The request to your server should be authenticated if your app
-                    // is using accounts.
-                    sendRegistrationIdToBackend();
-
-                    // For this demo: we don't need to send it because the device
-                    // will send upstream messages to a server that echo back the
-                    // message using the 'from' address in the message.
-
-                    // Persist the registration ID - no need to register again.
+                    sendRegistrationIdToBackend(name, email);
                     storeRegistrationId(context, regid);
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
                 }
-                Log.e("registerInBackground",msg);
+                Log.e("registerInBackground", msg);
+                return null;
+            }
+        }.execute(null, null, null);
+    }
+
+    private void unRegisterInBackground() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    if (gcm == null) {
+                        gcm = GoogleCloudMessaging.getInstance(context);
+                    }
+                    gcm.unregister();
+                    Log.i(TAG, "Device unregistered");
+                    CommonUtilities.displayMessage(context, getString(R.string.gcm_unregistered));
+                    ServerUtilities.unregister(context, regid);
+                    ClearSharedPreferences(context);
+                } catch (IOException ex) {
+                    Log.e("Error :", ex.getMessage());
+                }
                 return null;
             }
         }.execute(null, null, null);
@@ -201,7 +193,7 @@ public class MainActivity extends Activity {
      * {@code SharedPreferences}.
      *
      * @param context application's context.
-     * @param regId registration ID
+     * @param regId   registration ID
      */
     private void storeRegistrationId(Context context, String regId) {
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -212,15 +204,16 @@ public class MainActivity extends Activity {
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
         editor.commit();
     }
+
     /**
      * Sends the registration ID to your server over HTTP, so it can use GCM/HTTP
      * or CCS to send messages to your app. Not needed for this demo since the
      * device sends upstream messages to a server that echoes back the message
      * using the 'from' address in the message.
      */
-    private void sendRegistrationIdToBackend() {
+    private void sendRegistrationIdToBackend(String name, String email) {
         // Your implementation here.
-        ServerUtilities.register(getApplicationContext(),"cvnhan", "caovannhan2002@gmail.com",regid);
+        ServerUtilities.register(getApplicationContext(), name, email, regid);
 
     }
 
@@ -240,9 +233,51 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    /**
+     * Receiving push messages
+     */
+    private final BroadcastReceiver mHandleMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String newMessage = intent.getExtras().getString(CommonUtilities.EXTRA_MESSAGE);
+            WakeLocker.acquire(getApplicationContext());
+            lblMessage.append(newMessage + "\n");
+            Toast.makeText(getApplicationContext(), "New Message: " + newMessage, Toast.LENGTH_LONG).show();
+            clearNotification();
+            WakeLocker.release();
+        }
+    };
+
+    private void clearNotification() {
+        if (active) {
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(GCMIntentService.NOTIFICATION_ID);
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         checkPlayServices();
+        active = true;
+        clearNotification();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        active = false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        try {
+            unregisterReceiver(mHandleMessageReceiver);
+            unRegisterInBackground();
+            Log.e("unregister","done");
+        } catch (Exception e) {
+            Log.e("UnRegisterERR", "> " + e.getMessage());
+        }
+        super.onDestroy();
     }
 }

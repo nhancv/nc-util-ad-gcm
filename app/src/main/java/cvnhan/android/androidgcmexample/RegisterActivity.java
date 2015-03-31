@@ -3,9 +3,11 @@ package cvnhan.android.androidgcmexample;
 /**
  * Created by Administrator on 30-Mar-15.
  */
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -78,8 +80,10 @@ public class RegisterActivity extends Activity {
                     // Sending registraiton details to MainActivity
                     i.putExtra("name", name);
                     i.putExtra("email", email);
-                    startActivity(i);
+                    setResult(RESULT_OK, i);
+                    Log.e("register", "transit to mainactivity");
                     finish();
+
                 }else{
                     // user doen't filled that data
                     // ask him to fill the form

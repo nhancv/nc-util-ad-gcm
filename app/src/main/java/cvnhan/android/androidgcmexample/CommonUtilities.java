@@ -3,25 +3,20 @@ package cvnhan.android.androidgcmexample;
 /**
  * Created by Administrator on 30-Mar-15.
  */
+
 import android.content.Context;
 import android.content.Intent;
 
 public final class CommonUtilities {
-
     // give your server registration url here
-    static final String SERVER_URL = "http://192.168.1.21/gcm/register.php";
-
+//    static final String SERVER_URL = "http://192.168.1.21/gcm";
+    static final String SERVER_URL = "http://vannhan.comuv.com/gcm";
     // Google project id
     static final String SENDER_ID = "875274890887";
 
-    /**
-     * Tag used on log messages.
-     */
     static final String TAG = "Android GCM";
-
     static final String DISPLAY_MESSAGE_ACTION =
             "cvnhan.android.androidgcmexample.DISPLAY_MESSAGE";
-
     static final String EXTRA_MESSAGE = "message";
 
     /**
