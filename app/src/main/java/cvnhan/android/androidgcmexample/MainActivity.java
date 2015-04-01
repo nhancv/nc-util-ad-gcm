@@ -13,6 +13,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,6 +74,18 @@ public class MainActivity extends Activity {
                     lblMessage.setText(contentmsg);
                 }
             }
+
+            ((Button) findViewById(R.id.unregisterBtn)).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (regid.isEmpty() == false) {
+                        unRegisterInBackground();
+                        Log.e("unregister gcm", "done");
+                    }
+                }
+            });
+
+
         } else {
             Log.i(TAG, "No valid Google Play Services APK found.");
         }
@@ -109,12 +123,13 @@ public class MainActivity extends Activity {
         return registrationId;
     }
 
-    private void ClearSharedPreferences(Context context){
+    private void ClearSharedPreferences(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.commit();
     }
+
     /**
      * @return Application's {@code SharedPreferences}.
      */
@@ -273,8 +288,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         try {
             unregisterReceiver(mHandleMessageReceiver);
-            unRegisterInBackground();
-            Log.e("unregister","done");
+            Log.e("unregister", "done");
         } catch (Exception e) {
             Log.e("UnRegisterERR", "> " + e.getMessage());
         }
