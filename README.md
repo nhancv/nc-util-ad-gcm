@@ -515,8 +515,6 @@ In particular, you should never unregister your app as a mechanism for logout or
 A registration ID isn't associated with a particular logged in user. If you unregister and then re-register, GCM may return the same ID or a different ID—there's no guarantee either way.
 Unregistration may take up to 5 minutes to propagate.
 After unregistration, re-registration may again take up to 5 minutes to propagate. During this time messages may be rejected due to the state of being unregistered, and after all this, messages may still go to the wrong user.
-==========
-But my code will unregister gcm when app was destroyed, because this is a example. You can optimize interact between client side and server side.
 
 ```
 #!java
