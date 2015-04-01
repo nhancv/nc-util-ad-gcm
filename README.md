@@ -975,6 +975,92 @@ public final class CommonUtilities {
 
 ```
 
+
+```
+#!xml
+
+layout/activity_main.xml
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/unregisterBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UnRegister"
+            android:layout_gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/lblMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
+
+
+    </LinearLayout>
+</ScrollView>
+
+```
+
+
+```
+#!xml
+
+layout/activity_register.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Full Name:"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"
+        android:layout_marginTop="20dip"/>
+
+    <EditText android:id="@+id/txtName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dip"
+        android:layout_marginBottom="20dip"/>
+
+    <TextView android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Email:"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"/>
+
+    <EditText android:id="@+id/txtEmail"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dip"
+        android:layout_marginBottom="20dip"/>
+
+    <Button android:id="@+id/btnRegister"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:layout_margin="10dip"/>
+
+</LinearLayout>
+```
+
 All source of MainActivity file
 ```
 #!java
@@ -994,6 +1080,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -1053,6 +1141,18 @@ public class MainActivity extends Activity {
                     lblMessage.setText(contentmsg);
                 }
             }
+
+            ((Button) findViewById(R.id.unregisterBtn)).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (regid.isEmpty() == false) {
+                        unRegisterInBackground();
+                        Log.e("unregister gcm", "done");
+                    }
+                }
+            });
+
+
         } else {
             Log.i(TAG, "No valid Google Play Services APK found.");
         }
@@ -1090,12 +1190,13 @@ public class MainActivity extends Activity {
         return registrationId;
     }
 
-    private void ClearSharedPreferences(Context context){
+    private void ClearSharedPreferences(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.commit();
     }
+
     /**
      * @return Application's {@code SharedPreferences}.
      */
@@ -1254,8 +1355,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         try {
             unregisterReceiver(mHandleMessageReceiver);
-            unRegisterInBackground();
-            Log.e("unregister","done");
+            Log.e("unregister", "done");
         } catch (Exception e) {
             Log.e("UnRegisterERR", "> " + e.getMessage());
         }
