@@ -1413,6 +1413,9 @@ public final class CommonUtilities {
 
 ---------------------------------------------------------------------------
 
+```
+#!ruby
+
 GCM Example:
 http://support.apmetrix.com/hc/en-us/articles/200839259-Creating-your-Android-GCM-Credentials
 https://bitbucket.org/cvnhan/androidgooglecloudmessaging
@@ -1446,7 +1449,4 @@ Content-Type:application/json
 Other push notification
 https://www.pubnub.com/products/publish-subscribe/
 
-
-
-
-
+```
