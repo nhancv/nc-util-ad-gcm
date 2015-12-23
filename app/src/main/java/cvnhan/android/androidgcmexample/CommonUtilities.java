@@ -9,8 +9,8 @@ import android.content.Intent;
 
 public final class CommonUtilities {
     // give your server registration url here
-//    static final String SERVER_URL = "http://192.168.1.21/gcm";
-    static final String SERVER_URL = "http://vannhan.comuv.com/gcm";
+    static final String SERVER_URL = "http://192.168.1.26/gcm";
+//    static final String SERVER_URL = "http://vannhan.comuv.com/gcm";
     // Google project id
     static final String SENDER_ID = "875274890887";
 

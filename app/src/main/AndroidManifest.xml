@@ -51,7 +51,7 @@
             android:label="@string/app_name" >
         </activity>
         <receiver
-            android:name=".GCMBroadcastReceiver"
+            android:name=".GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <!-- Receives the actual messages. -->

@@ -195,6 +195,7 @@ public class MainActivity extends Activity {
                     CommonUtilities.displayMessage(context, getString(R.string.gcm_unregistered));
                     ServerUtilities.unregister(context, regid);
                     ClearSharedPreferences(context);
+                    startActivityForResult(new Intent(MainActivity.this, RegisterActivity.class), 0);
                 } catch (IOException ex) {
                     Log.e("Error :", ex.getMessage());
                 }
