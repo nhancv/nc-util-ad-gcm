@@ -50,7 +50,10 @@ define("DB_PASSWORD", "root");
 define("DB_DATABASE", "gcm");
  
 /*
- * Google API Key (Public API access -> choose create browser key)
+ * Google API Key - SERVER KEY
+ * Fix error Unauthorized Error 401: 
+ * Create Server Key instead of Browser Key:
+ * + Credentials -> New credentials -> API key -> Server key (set blank of field "Accept requests from these server * IP addresses ") -> Create
  */
 define("GOOGLE_API_KEY", "BIzaSyCRLa4LQZWNQBcRCYcIVYA45i9i8zfClqc"); // Place your Google API Key
 ?>
