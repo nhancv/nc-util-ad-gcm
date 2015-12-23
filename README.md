@@ -1410,3 +1410,43 @@ public final class CommonUtilities {
 
 
 ```
+
+---------------------------------------------------------------------------
+
+GCM Example:
+http://support.apmetrix.com/hc/en-us/articles/200839259-Creating-your-Android-GCM-Credentials
+https://bitbucket.org/cvnhan/androidgooglecloudmessaging
+https://developers.google.com/cloud-messaging/http
+http://hmkcode.com/send-http-post-request-from-java-application-to-google-messaging-service/
+
+Fix error Unauthorized Error 401: 
+Create Server Key instead of Browser Key:
++ Credentials -> New credentials -> API key -> Server key (set blank of field "Accept requests from these server IP addresses ") -> Create
+
+Test: (Authorization:key= GOOGLE SERVER API KEY)
+User API Client (Postman)
+- Method POST
+- Url: https://android.googleapis.com/gcm/send
+- Headers: 
+Authorization:key=AIzaSyCLvEsc6jiYdWClp7ngmg6pgB7VywausFk
+Content-Type:application/json
+- Body: 
+{
+    "registration_ids": [
+        "APA91bH1e0sfxHX6w4UbEmsSxwHn3G3YtbOaqGiEbIEpcjPfMR3QPk-d8XScqV2IkgSi_7HJS0G-4V98ExRyytyyLtgUfzXmRkcwZN_Roz3UI_7ejKcUVTD7VbBcx0FSmeFSKODzbOfEU5pv42aSvU5UDKbt-3WWAw"
+    ],
+    "data": {
+        "content": "d"
+    }
+}
+
+
+
+===============
+Other push notification
+https://www.pubnub.com/products/publish-subscribe/
+
+
+
+
+
